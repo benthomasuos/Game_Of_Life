@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <title>Conway's Game of Life</title>
+</head>
+<body>
+
+<div id="app">
+    <div id='gen'></div>
+    <div id='black'></div>
+    <canvas width=600 height=400 id="canvas"></canvas>
+</div>
+
+<script >
+const canvas = document.getElementById('canvas')
+const ctx = canvas.getContext('2d')
+var w = 500
+var h = 400
+
+var size = w * h
+
+scale = 2
+
+var generation = 1
+var genDiv = document.getElementById('gen') 
+
+var pc_black = 0
+var blackDiv = document.getElementById('black') 
+
+canvas.width = w * scale
+canvas.height = h * scale
+
+var cells_1 = []
+var cells_2 = []
+
+
+
+
+initGame()
+render()
+
+animate()
+
+
+
+
+
+
+function initGame(){
+    cells_1 = new Array(w).fill(0).map(() => new Array(h).fill(0));
+    cells_2 = new Array(w).fill(0).map(() => new Array(h).fill(0));
+
+    //addGlider(10,10)
+    //addGlider(20,20)
+    //addGlider(50,50)
+    //addGlider(70,70)
+    
+    //addR_pentomino(10,10)
+    //addR_pentomino(16,16)
+    //addR_pentomino(20,20)
+  
+    seedRandom()
+}
+
+
+
+function addGlider(x,y){
+    
+    cells_1[x][y+1] = 1
+    cells_1[x+1][y+2] = 1
+    cells_1[x+2][y+2] = 1
+    cells_1[x+2][y+1] = 1
+    cells_1[x+2][y] = 1
+}
+
+function addR_pentomino(x,y){
+    
+    cells_1[x+1][y] = 1
+    cells_1[x+2][y] = 1
+    cells_1[x][y+1] = 1
+    cells_1[x+1][y+1] = 1
+    cells_1[x+1][y+2] = 1
+}
+
+
+function addBlock(x,y){
+    
+    cells_1[x][y] = 1
+    cells_1[x][y+1] = 1
+    cells_1[x+1][y] = 1
+    cells_1[x+1][y+1] = 1
+}
+
+
+
+function addBlinker(x,y){
+    
+    cells_1[x][y] = 1
+    cells_1[x+1][y] = 1
+    cells_1[x+2][y] = 1
+}
+
+function seedRandom(){
+    // random seeding
+    for(var j = 0; j < h; j++){
+        for(var i = 0; i < w; i++){                
+            cells_1[i][j] = Math.round(Math.random()*1.2)
+        }
+    }
+}
+
+function animate(){
+   
+    /*
+    setInterval( function(){
+        calculateLife()
+
+    } ,500) 
+    */
+
+
+   calculateLife()
+   
+   window.requestAnimationFrame(animate)
+
+}
+
+
+function calculateLife(){
+
+    for(var j = 1; j < h-1; j++){
+        for(var i = 1; i < w-1; i++){
+            if(cells_1[i][j]){
+                pc_black += 1
+            }
+
+            var count = 0
+            if( typeof cells_1[i][j] == 'number' ){
+                if( typeof cells_1[i][j-1] == 'number'){
+                    count += cells_1[i][j-1] // state of the cell to the top-middle
+                }
+                if( typeof cells_1[i+1][j-1] == 'number'){
+                    count += cells_1[i+1][j-1] // state of the cell to the top-right    
+                }
+                if( typeof cells_1[i+1][j]  == 'number'){
+                    count += cells_1[i+1][j] // state of the cell to the right-middle
+                }
+                if( typeof cells_1[i+1][j+1]  == 'number'){
+                    count += cells_1[i+1][j+1] // state of the cell to the right-bottom
+                }
+                if( typeof cells_1[i][j+1]  == 'number'){
+                    count += cells_1[i][j+1] // state of the cell to the bottom-middle
+                }
+                if( typeof cells_1[i-1][j+1]  == 'number'){
+                    count += cells_1[i-1][j+1] // state of the cell to the left-bottom
+                }
+                if( typeof cells_1[i-1][j]  == 'number'){
+                    count += cells_1[i-1][j] // state of the cell to the left-middle
+                }
+                if( typeof cells_1[i-1][j-1]  == 'number'){
+                    count += cells_1[i-1][j-1] // state of the cell to the left-top
+                }
+            }
+
+            if(count < 2){
+                // dies from underpopulation
+                cells_2[i][j] = 0
+            }
+            if(count == 2){
+                // lives on / no change
+                cells_2[i][j] = cells_1[i][j]
+            }
+            if(count == 3){
+                // reproduction
+                cells_2[i][j] = 1
+            }
+            if(count > 3 && cells_1[i][j] == 1){
+                // death from overpopulation
+                cells_2[i][j] = 0
+            }
+
+        
+        }
+       
+
+
+
+    }
+
+    cells_1 = cells_2
+    cells_2 = new Array(w).fill(0).map(() => new Array(h).fill(0));
+
+    render()
+    generation += 1
+    genDiv.innerHTML = `Generation: ${generation}`
+    var pc = 100 * pc_black / ( w * h )
+    blackDiv.innerHTML = `Population: ${pc.toFixed(3)}%`
+    pc_black = 0
+
+}
+
+
+function render(){
+    ctx.clearRect(0,0,w*scale,h*scale)
+
+    for(var i = 0; i < w; i++){        
+        for(var j = 0; j < h; j++){
+            drawPoint(cells_1[i][j], i, j)
+        }
+    }
+
+}
+
+function drawPoint(state, x, y){
+    if(state){
+        ctx.fillStyle = '#222'
+        ctx.fillRect( x * scale, y * scale, scale, scale)
+    }
+}
+
+
+</script>
+</body>
+</html>
